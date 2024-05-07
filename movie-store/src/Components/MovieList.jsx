@@ -1,22 +1,29 @@
-import React from 'react'
-import MovieItem from './MovieItem';
-const MovieList = () => {
+import React from 'react';
+import moviesData from './moviesData';
 
-    const movies = [
-        {id:1, title: 'Titanic', genre: 'Romance', year: 1997, rating:7.9, picture:'https://images.app.goo.gl/fjKbeVWJfbwGSXfm7'},
-        {id:2, title: 'Fired Up', genre: 'Comedy', year: 2009, rating:6.1, picture: 'https://images.app.goo.gl/YT18B8gnG6noRhEC7'},
-        {id:2, title: 'Django Unchained', genre: 'Action', year: 2012, rating:8.5, picture: 'https://images.app.goo.gl/xNXcibYfqAfENk7T8'},
-        {id:2, title: 'Grey Man', genre: 'Action', year: 2022, rating:6.5, picture: 'https://images.app.goo.gl/Aj8chJtCUf7uXHhV7'},
-        {id:2, title: 'Wedding Crashers', genre: 'Romantic Comedy', year: 2005, rating:7, picture: 'https://images.app.goo.gl/PoHsVWqmhACBuDjQ9'},
-        {id:2, title: 'The Notebook', genre: 'Romantic Comedy', year: 2004, rating:7.8, picture: 'https://images.app.goo.gl/pSme8n2zv5jrxMA1A'},
-    ];
+const movies = moviesData(); // Call the moviesData function to get the array of movie objects
+
+function MovieList({searchQuery}) {
+  // Ensure that movies is an array
+  console.log(Array.isArray(movies)); // Check if movies is an array
+
+  // Use the filter method on movies
+  const filteredMovies = movies.filter(movie =>
+    movie.title.includes(searchQuery)
+  );
+
   return (
-    <>
-    {movies.map(movie => (
-        <MovieItem key={movie.id} movie={movie}/>
-    ))}
-    </>
-  )
+    <div>
+      {filteredMovies.map(movie => (
+        <div key={movie.id}>
+          <h2>{movie.title}</h2>
+          <p>Genre: {movie.genre}</p>
+          <p>Year: {movie.year}</p>
+          <p>Rating: {movie.rating}</p>
+        </div>
+      ))}
+    </div>
+  );
 }
 
-export default MovieList
+export default MovieList;
