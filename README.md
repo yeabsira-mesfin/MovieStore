@@ -1,54 +1,61 @@
-# SecureCodeBench
+# RepoDoctor
 
-SecureCodeBench is an AI code-security evaluation project that measures whether generated code is safe enough for production, not merely syntactically valid or functionally plausible.
+A pull-request review benchmark for measuring whether an engineer or AI coding agent can identify real defects without flooding reviewers with false positives.
 
-The benchmark focuses on security failures that frequently survive shallow code review: broken object authorization, SQL injection, incomplete JWT validation, server-side request forgery, and accidental client-side secret exposure.
+RepoDoctor focuses on a skill that is difficult to fake in a portfolio: reviewing unfamiliar code, prioritizing consequential findings, and distinguishing security/correctness bugs from style preferences.
 
-## Features
+## Stack
 
-- React + TypeScript security-review dashboard
-- Realistic vulnerable code cases with CWE mappings
-- Gold-standard findings and secure remediation patterns
-- Weighted Python scoring engine
-- Pytest coverage for the scorer
-- CI for frontend and evaluation engine
-- Recruiter-friendly interactive presentation
+- **Java 17** evaluation service using the JDK HTTP server
+- React + TypeScript review console
+- Precision, recall, F1, and severity-weighted scoring
+- Curated PR cases covering authorization, concurrency, data integrity, API reliability, and frontend correctness
+- No external Java framework required
+- Docker + CI
 
-## Evaluation dimensions
+## How scoring works
 
-```text
-Vulnerability identification  35%
-Exploitability and impact     25%
-Secure remediation            25%
-Regression-safe tests         15%
-```
+For each PR case, the candidate selects the findings they believe are real. RepoDoctor compares the selection against a server-side gold set and reports:
 
-## Run the frontend
+- Precision: how many reported issues were actually valid
+- Recall: how many gold issues were found
+- F1: balance of precision and recall
+- Severity coverage: whether high-impact findings were caught
+- Overall score
+
+False positives reduce precision, making "report everything" a poor strategy.
+
+## Run
+
+### Backend
 
 ```bash
+cd backend
+./build.sh
+java -cp out dev.repodoc.Server
+```
+
+API: `http://localhost:8090`
+
+### Frontend
+
+```bash
+cd frontend
 npm install
 npm run dev
 ```
 
-## Run scorer tests
+Set `VITE_API_BASE_URL=http://localhost:8090` when needed.
 
-```bash
-python -m pip install pytest
-pytest
-```
+## Why Java here?
 
-## Deployment
+The project intentionally uses a different backend language to demonstrate cross-stack engineering and code-review fluency rather than repeating the same implementation four times.
 
-The React/Vite frontend can deploy directly to Vercel, Cloudflare Pages, Netlify, or GitHub Pages. The Python scorer is intentionally small and deterministic, making it easy to run locally, in CI, or behind a lightweight API later.
+## Public-demo safety
 
-## Portfolio signal
-
-SecureCodeBench demonstrates AppSec reasoning, secure API review, authorization design, AI-code evaluation, benchmark construction, Python, React/TypeScript, testing, and CI/CD.
-
-## Legacy history
-
-This repository originally contained a movie-store application. Its Git history is preserved as part of the project's evolution.
+RepoDoctor renders curated diff fragments and evaluates structured selections. It does not clone arbitrary repositories or execute untrusted code.
 
 ## Author
 
-Yeabsira Mesfin
+**Yeabsira Mesfin**  
+Full Stack Software Engineer | M.S. Cybersecurity in Computer Science

@@ -1,0 +1,8 @@
+package dev.repodoc;
+import com.sun.net.httpserver.*;import java.io.*;import java.net.*;import java.nio.charset.StandardCharsets;import java.util.*;
+public class Server {
+ public static void main(String[]args)throws Exception{HttpServer s=HttpServer.create(new InetSocketAddress(8090),0);s.createContext("/health",x->send(x,200,"{\"status\":\"ok\",\"cases\":"+Cases.ALL.size()+"}"));s.createContext("/api/cases",x->send(x,200,Json.cases()));s.createContext("/api/score",Server::score);s.setExecutor(null);s.start();System.out.println("RepoDoctor API on 8090");}
+ static void score(HttpExchange x)throws IOException{if(!x.getRequestMethod().equalsIgnoreCase("POST")){send(x,405,"{\"error\":\"POST required\"}");return;}Map<String,String> q=parse(x.getRequestBody());ReviewCase c=Cases.byId(q.getOrDefault("caseId",""));if(c==null){send(x,404,"{\"error\":\"Case not found\"}");return;}Set<String> selected=new HashSet<>();String raw=q.getOrDefault("selected","");if(!raw.isBlank())selected.addAll(Arrays.asList(raw.split(",")));send(x,200,Json.result(ScoreEngine.score(c,selected)));}
+ static Map<String,String> parse(InputStream in)throws IOException{String b=new String(in.readAllBytes(),StandardCharsets.UTF_8);Map<String,String>m=new HashMap<>();for(String p:b.split("&")){String[]kv=p.split("=",2);m.put(URLDecoder.decode(kv[0],StandardCharsets.UTF_8),kv.length>1?URLDecoder.decode(kv[1],StandardCharsets.UTF_8):"");}return m;}
+ static void send(HttpExchange x,int status,String body)throws IOException{x.getResponseHeaders().set("Content-Type","application/json");x.getResponseHeaders().set("Access-Control-Allow-Origin","*");byte[]b=body.getBytes(StandardCharsets.UTF_8);x.sendResponseHeaders(status,b.length);try(OutputStream o=x.getResponseBody()){o.write(b);}}
+}
