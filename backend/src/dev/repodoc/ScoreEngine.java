@@ -11,7 +11,7 @@ public final class ScoreEngine {
     double recall=gold.isEmpty()?1:(double)t/gold.size();
     double f1=(precision+recall)==0?0:2*precision*recall/(precision+recall);
     double severity=severityCoverage(c,tp);
-    int overall=(int)Math.round(100*(0.45*f1+0.35*recall+0.20*severity));
+    int overall=(int)Math.round(100*(0.50*f1+0.30*precision+0.20*severity));
     return new Result(overall,round(precision),round(recall),round(f1),round(severity),t,f,miss);
   }
   private static double severityCoverage(ReviewCase c,Set<String> tp){

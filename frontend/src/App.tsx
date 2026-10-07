@@ -1,3 +1,191 @@
-import{useEffect,useState}from'react';import{GitPullRequest,ScanSearch,CheckCircle2,Target}from'lucide-react';
-type C={id:string;title:string;language:string;context:string;diff:string;options:{id:string;label:string;severity:string}[]};const API=import.meta.env.VITE_API_BASE_URL||'http://localhost:8090';
-export default function App(){const[cases,setCases]=useState<C[]>([]);const[cur,setCur]=useState<C|null>(null);const[selected,setSelected]=useState<string[]>([]);const[result,setResult]=useState<any>(null);useEffect(()=>{fetch(`${API}/api/cases`).then(r=>r.json()).then(d=>{setCases(d);setCur(d[0])})},[]);useEffect(()=>{setSelected([]);setResult(null)},[cur?.id]);function toggle(id:string){setSelected(s=>s.includes(id)?s.filter(x=>x!==id):[...s,id])}async function score(){if(!cur)return;const body=new URLSearchParams({caseId:cur.id,selected:selected.join(',')});const r=await fetch(`${API}/api/score`,{method:'POST',body});setResult(await r.json())}return <div><header><div><GitPullRequest/><b>RepoDoctor</b><span>Pull request review benchmark</span></div><label>PRECISION OVER NOISE</label></header><main><section className="hero"><span>CODE REVIEW • AI EVALUATION • ENGINEERING JUDGMENT</span><h1>Find the bugs that matter. Avoid the ones that don't exist.</h1></section><div className="layout"><aside><h3>Review queue</h3>{cases.map(c=><button key={c.id} onClick={()=>setCur(c)} className={cur?.id===c.id?'active':''}><b>{c.title}</b><span>{c.language}</span></button>)}</aside>{cur&&<section className="review"><div className="meta"><span>{cur.language}</span><h2>{cur.title}</h2><p>{cur.context}</p></div><pre>{cur.diff}</pre><h3><ScanSearch size={18}/> Which findings would you leave?</h3><div className="opts">{cur.options.map(o=><label className={selected.includes(o.id)?'chosen':''} key={o.id}><input type="checkbox" checked={selected.includes(o.id)} onChange={()=>toggle(o.id)}/><div><b>{o.label}</b><span>{o.severity}</span></div></label>)}</div><button className="scorebtn" onClick={score}>Score code review</button></section>}<section className="metrics"><h3><Target size={18}/> Reviewer metrics</h3>{result?<><div className="overall"><strong>{result.score}</strong><span>/100</span></div><h2>{result.score>=85?'High-signal review':result.score>=60?'Useful review':'Needs refinement'}</h2><div className="metricGrid"><div><b>{Math.round(result.precision*100)}%</b><span>Precision</span></div><div><b>{Math.round(result.recall*100)}%</b><span>Recall</span></div><div><b>{Math.round(result.f1*100)}%</b><span>F1</span></div><div><b>{Math.round(result.severityCoverage*100)}%</b><span>Severity coverage</span></div></div><p><CheckCircle2 size={15}/>{result.truePositives} valid findings • {result.falsePositives} false positives • {result.missed} missed</p></>:<div className="empty">Submit your review to measure precision, recall, severity coverage, and F1.</div>}</section></div></main></div>}
+type ReviewResult = {
+  score: number;
+  precision: number;
+  recall: number;
+  f1: number;
+  severityCoverage: number;
+  truePositives: number;
+  falsePositives: number;
+  missed: number;
+};
+import { request } from "./api";
+import { useEffect, useState } from "react";
+import { GitPullRequest, ScanSearch, CheckCircle2, Target } from "lucide-react";
+type C = {
+  id: string;
+  title: string;
+  language: string;
+  context: string;
+  diff: string;
+  options: { id: string; label: string; severity: string }[];
+};
+export default function App() {
+  const [cases, setCases] = useState<C[]>([]);
+  const [cur, setCur] = useState<C | null>(null);
+  const [selected, setSelected] = useState<string[]>([]);
+  const [result, setResult] = useState<ReviewResult | null>(null);
+  const [error, setError] = useState("");
+  const [busy, setBusy] = useState(false);
+  useEffect(() => {
+    request<C[]>("/api/cases")
+      .then((d) => {
+        setCases(d);
+        setCur(d[0] ?? null);
+      })
+      .catch((e) => setError(e.message));
+  }, []);
+  useEffect(() => {
+    setSelected([]);
+    setResult(null);
+  }, [cur?.id]);
+  function toggle(id: string) {
+    setSelected((s) =>
+      s.includes(id) ? s.filter((x) => x !== id) : [...s, id],
+    );
+  }
+  async function score() {
+    if (!cur || busy) return;
+    setBusy(true);
+    setError("");
+    setResult(null);
+    try {
+      const body = new URLSearchParams({
+        caseId: cur.id,
+        selected: selected.join(","),
+      });
+      setResult(
+        await request<ReviewResult>("/api/score", { method: "POST", body }),
+      );
+    } catch (e) {
+      setError((e as Error).message);
+    } finally {
+      setBusy(false);
+    }
+  }
+  return (
+    <div>
+      <header>
+        <div>
+          <GitPullRequest />
+          <b>RepoDoctor</b>
+          <span>Pull request review benchmark</span>
+        </div>
+        <label>PRECISION OVER NOISE</label>
+      </header>
+      <main>
+        {error && (
+          <div role="alert" className="error">
+            {error}{" "}
+            <button onClick={() => window.location.reload()}>Retry</button>
+          </div>
+        )}
+        {!cases.length && !error && (
+          <p role="status">Loading review cases...</p>
+        )}
+        <section className="hero">
+          <span>CODE REVIEW • AI EVALUATION • ENGINEERING JUDGMENT</span>
+          <h1>Find the bugs that matter. Avoid the ones that don't exist.</h1>
+        </section>
+        <div className="layout">
+          <aside>
+            <h3>Review queue</h3>
+            {cases.map((c) => (
+              <button
+                key={c.id}
+                disabled={busy}
+                onClick={() => setCur(c)}
+                className={cur?.id === c.id ? "active" : ""}
+              >
+                <b>{c.title}</b>
+                <span>{c.language}</span>
+              </button>
+            ))}
+          </aside>
+          {cur && (
+            <section className="review">
+              <div className="meta">
+                <span>{cur.language}</span>
+                <h2>{cur.title}</h2>
+                <p>{cur.context}</p>
+              </div>
+              <pre>{cur.diff}</pre>
+              <h3>
+                <ScanSearch size={18} /> Which findings would you leave?
+              </h3>
+              <div className="opts">
+                {cur.options.map((o) => (
+                  <label
+                    className={selected.includes(o.id) ? "chosen" : ""}
+                    key={o.id}
+                  >
+                    <input
+                      type="checkbox"
+                      checked={selected.includes(o.id)}
+                      onChange={() => toggle(o.id)}
+                    />
+                    <div>
+                      <b>{o.label}</b>
+                      <span>{o.severity}</span>
+                    </div>
+                  </label>
+                ))}
+              </div>
+              <button className="scorebtn" disabled={busy} onClick={score}>
+                {busy ? "Scoring..." : "Score code review"}
+              </button>
+            </section>
+          )}
+          <section className="metrics" aria-live="polite">
+            <h3>
+              <Target size={18} /> Reviewer metrics
+            </h3>
+            {result ? (
+              <>
+                <div className="overall">
+                  <strong>{result.score}</strong>
+                  <span>/100</span>
+                </div>
+                <h2>
+                  {result.score >= 85
+                    ? "High-signal review"
+                    : result.score >= 60
+                      ? "Useful review"
+                      : "Needs refinement"}
+                </h2>
+                <div className="metricGrid">
+                  <div>
+                    <b>{Math.round(result.precision * 100)}%</b>
+                    <span>Precision</span>
+                  </div>
+                  <div>
+                    <b>{Math.round(result.recall * 100)}%</b>
+                    <span>Recall</span>
+                  </div>
+                  <div>
+                    <b>{Math.round(result.f1 * 100)}%</b>
+                    <span>F1</span>
+                  </div>
+                  <div>
+                    <b>{Math.round(result.severityCoverage * 100)}%</b>
+                    <span>Severity coverage</span>
+                  </div>
+                </div>
+                <p>
+                  <CheckCircle2 size={15} />
+                  {result.truePositives} valid findings •{" "}
+                  {result.falsePositives} false positives • {result.missed}{" "}
+                  missed
+                </p>
+              </>
+            ) : (
+              <div className="empty">
+                Submit your review to measure precision, recall, severity
+                coverage, and F1.
+              </div>
+            )}
+          </section>
+        </div>
+      </main>
+    </div>
+  );
+}

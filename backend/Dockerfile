@@ -5,5 +5,6 @@ RUN chmod +x build.sh && ./build.sh
 FROM eclipse-temurin:17-jre
 WORKDIR /app
 COPY --from=build /app/out ./out
+USER 10001
 EXPOSE 8090
 CMD ["java","-cp","out","dev.repodoc.Server"]

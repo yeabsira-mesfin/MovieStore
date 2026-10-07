@@ -1,0 +1,16 @@
+{
+  "intended_name": "repo-doctor",
+  "description": "Java-backed code-review benchmark measuring precision, recall, F1, severity coverage, and false positives.",
+  "topics": [
+    "ai-evaluation",
+    "code-review",
+    "software-engineering",
+    "benchmark",
+    "java",
+    "react",
+    "typescript",
+    "testing",
+    "ci-cd"
+  ],
+  "settings_applied": false
+}
