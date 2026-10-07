@@ -1,0 +1,32 @@
+{
+  "verified_date": "2026-10-07",
+  "kind": "deployment and synthetic fixture smoke tests, not model evaluation",
+  "vercel_url": "https://repo-doctor-beta.vercel.app/",
+  "github_pages_url": "https://yeabsira-mesfin.github.io/repo-doctor/",
+  "checks": {
+    "/": {
+      "status": 200,
+      "https": true,
+      "nosniff": "nosniff"
+    },
+    "/health": {
+      "status": 200,
+      "https": true,
+      "nosniff": "nosniff"
+    },
+    "/review/example": {
+      "status": 200,
+      "https": true,
+      "nosniff": "nosniff"
+    },
+    "pages_cors": "https://yeabsira-mesfin.github.io",
+    "untrusted_cors": null,
+    "api": {
+      "status": 200,
+      "body": "[{\"id\":\"tenant-leak\",\"title\":\"PR #184: Add record details endpoint\",\"language\":\"TypeScript\",\"context\":\"Multi-tenant Express API. req.user.tenantId contains the authenticated tenant.\",\"diff\":\"+ router.get('/records/:id', async (req,res) => {\\n+   const record = await db.records.findUnique({ where: { id: req.params.id } })\\n+   if (!record) return re"
+    },
+    "bundle_assets": 1,
+    "bundle_suspicions": []
+  },
+  "mobile_scope": "390x844 local production build; live browser checked at desktop viewport"
+}
