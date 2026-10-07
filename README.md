@@ -2,9 +2,9 @@
 
 A Java-backed pull-request review benchmark that rewards valid findings and penalizes false positives.
 
-[![CI](https://github.com/yeabsira-mesfin/MovieStore/actions/workflows/ci.yml/badge.svg)](https://github.com/yeabsira-mesfin/MovieStore/actions)
+[![CI](https://github.com/yeabsira-mesfin/repo-doctor/actions/workflows/ci.yml/badge.svg)](https://github.com/yeabsira-mesfin/repo-doctor/actions)
 
-**Demo status:** public hosting is pending account permissions. No live URL is claimed. Run the local demo below. Intended repository slug: `repo-doctor`; GitHub repository renaming is pending.
+**Demo status:** public hosting is pending account permissions. No live URL is claimed. Run the local demo below.
 
 ## Why this exists
 
